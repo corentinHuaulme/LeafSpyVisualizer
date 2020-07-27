@@ -2,10 +2,13 @@ package View;
 
 import Controller.CSVReader;
 import Model.CarData;
+import org.jfree.data.io.CSV;
+import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.io.*;
 import java.lang.reflect.Array;
@@ -19,21 +22,26 @@ public class mainWindow extends JPanel {
 
     public mainWindow(){
 
-        ArrayList<CarData> cd = new CSVReader().readFile("src/main/resources/TestLogFiles/Log_U6064208_200130_a7c06.csv");
+        JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
+        jfc.setMultiSelectionEnabled(true);
+        File[] selectedFile = null;
+        int returnValue = jfc.showOpenDialog(null);
+        // int returnValue = jfc.showSaveDialog(null);
+
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+            selectedFile = jfc.getSelectedFiles();
+        }
+        ArrayList<ArrayList<CarData>> cd = new ArrayList<ArrayList<CarData>>();
+        cd = new CSVReader().readFiles(selectedFile);
+
         PanelChart panelChart = new PanelChart(cd);
-        XYSeries charge = panelChart.getSeriesCharge();
-        XYSeries temp = panelChart.getSeriesTemperatureBattery();
-        XYSeriesCollection dataset = new XYSeriesCollection();
-        dataset.addSeries(charge);
-        //dataset.addSeries(temp);
+        XYDataset charge = panelChart.getSeriesCharge();
+        XYDataset temp = panelChart.getSeriesTemperatureBattery();
         this.setSize(800,800);
         this.setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
-        JPanel chart = panelChart.getPanelChart("test","Time","Thing",dataset);
-
-        XYSeriesCollection dataset2 = new XYSeriesCollection();
-        dataset2.addSeries(temp);
-        JPanel chart2 = panelChart.getPanelChart("test2","Time","Thing",dataset2);
+        JPanel chart = panelChart.getPanelChart("test","Time","Charge of the battery (%)",charge);
+        JPanel chart2 = panelChart.getPanelChart("test2","Time","Temperature of the battery (°C)",temp);
 
         var list = new JList();
 
@@ -93,7 +101,7 @@ public class mainWindow extends JPanel {
         frame.getContentPane().add(new mainWindow());
 
         //Display the window.
-        //frame.pack();
+        frame.pack();
         frame.setVisible(true);
 
     }

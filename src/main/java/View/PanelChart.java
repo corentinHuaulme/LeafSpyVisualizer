@@ -23,40 +23,56 @@ import java.util.ArrayList;
 
 public class PanelChart{
 
-    private ArrayList<CarData> data;
+    private ArrayList<ArrayList<CarData>> data;
 
-    public PanelChart(ArrayList<CarData> cd){
+    public PanelChart(ArrayList<ArrayList<CarData>> cd){
         this.data = cd;
     }
 
-    public XYSeries getSeriesCharge(){
-        XYSeries s2 = new XYSeries("State Of Charge");
+    public XYDataset getSeriesCharge(){
+        XYSeriesCollection dataset = new XYSeriesCollection();
         int num = 1;
-        for(CarData d : this.data){
-            s2.add(num,d.getCharge());
-            num++;
+        int numSeries = 1;
+        for(ArrayList<CarData> cd : this.data){
+            XYSeries s2 = new XYSeries("Serie "+numSeries);
+            for(CarData data : cd) {
+                s2.add(num, data.getCharge());
+                num++;
+            }
+            numSeries++;
+            dataset.addSeries(s2);
         }
-        return s2;
+        return dataset;
     }
 
-    public XYSeries getSeriesTemperatureBattery(){
-        XYSeries s2 = new XYSeries("Temperature of the Battery");
+    public XYDataset getSeriesTemperatureBattery(){
+        XYSeriesCollection dataset = new XYSeriesCollection();
         int num = 1;
-        for(CarData d : this.data){
-            s2.add(num,d.getTemperature());
-            num++;
+        int numSeries = 1;
+        for(ArrayList<CarData> cd : this.data){
+            XYSeries s2 = new XYSeries("Serie "+numSeries);
+            for(CarData data : cd) {
+                s2.add(num, data.getTemperature());
+                num++;
+            }
+            numSeries++;
+            dataset.addSeries(s2);
         }
-        return s2;
+        return dataset;
     }
 
-    public XYSeries getSeriesCapacity(){
-        XYSeries s2 = new XYSeries("Capacity of the Battery");
+    public XYDataset getSeriesCapacity(){
+        XYSeriesCollection dataset = new XYSeriesCollection();
         int num = 1;
-        for(CarData d : this.data){
-            s2.add(num,d.getAHr());
-            num++;
+        for(ArrayList<CarData> cd : this.data){
+            XYSeries s2 = new XYSeries("Capacity of the Battery");
+            for(CarData data : cd) {
+                s2.add(num, data.getTemperature());
+                num++;
+            }
+            dataset.addSeries(s2);
         }
-        return s2;
+        return dataset;
     }
 
     public JPanel getPanelChart(String title, String xLabel, String yLabel, XYDataset dataset){

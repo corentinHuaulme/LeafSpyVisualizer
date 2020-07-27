@@ -15,16 +15,15 @@ import org.jxmapviewer.viewer.*;
 
 import javax.swing.*;
 import javax.swing.event.MouseInputListener;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.awt.*;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 public class mapPanel extends JPanel {
 
     private JXMapViewer map;
 
-    public mapPanel(ArrayList<CarData> cd){
+    public mapPanel(ArrayList<ArrayList<CarData>> cd){
 
         this.map = new JXMapViewer();
 
@@ -33,23 +32,35 @@ public class mapPanel extends JPanel {
         DefaultTileFactory tileFactory = new DefaultTileFactory(info);
         this.map.setTileFactory(tileFactory);
 
-        List<GeoPosition> track = new ArrayList<>();
-        for (CarData c : cd) {
-            track.add(new GeoPosition(c.getLatitude(),c.getLongitude()));
+
+        // Create a compound painter that uses both the route-painter and the waypoint-painter
+        List<Painter<JXMapViewer>> painters = new ArrayList<Painter<JXMapViewer>>();
+
+        List<GeoPosition> track =null;
+        for(ArrayList<CarData> data : cd) {
+            track = new ArrayList<>();
+            for (CarData c : data) {
+                track.add(new GeoPosition(c.getLatitude(), c.getLongitude()));
+            }
+            Random rand = new Random();
+            float r = rand.nextFloat();
+            float g = rand.nextFloat();
+            float b = rand.nextFloat();
+            Color random = new Color(r,g,b);
+            painters.add(new RoutePainter(track, random));
         }
-        RoutePainter routePainter = new RoutePainter(track);
 
         // Set the focus
         this.map.zoomToBestFit(new HashSet<GeoPosition>(track), 1);
         //this.map.setZoom(12);
 
-        // Create waypoints from the geo-positions
+       /* // Create waypoints from the geo-positions
         Set<Waypoint> waypoints = new HashSet<Waypoint>();
 
         for(GeoPosition g : track){
             waypoints.add(new DefaultWaypoint(g));
         }
-
+*/
 
         // Add interactions
         MouseInputListener mia = new PanMouseInputListener( this.map);
@@ -64,13 +75,11 @@ public class mapPanel extends JPanel {
 
 
 
-        // Create a waypoint painter that takes all the waypoints
+       /* // Create a waypoint painter that takes all the waypoints
         WaypointPainter<Waypoint> waypointPainter = new WaypointPainter<Waypoint>();
         waypointPainter.setWaypoints(waypoints);
+*/
 
-        // Create a compound painter that uses both the route-painter and the waypoint-painter
-        List<Painter<JXMapViewer>> painters = new ArrayList<Painter<JXMapViewer>>();
-        painters.add(routePainter);
        // painters.add(waypointPainter);
 
         CompoundPainter<JXMapViewer> painter = new CompoundPainter<JXMapViewer>(painters);
