@@ -2,6 +2,7 @@ package View;
 
 import Controller.CSVReader;
 import Model.CarData;
+import org.jfree.chart.ChartColor;
 import org.jfree.data.io.CSV;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;

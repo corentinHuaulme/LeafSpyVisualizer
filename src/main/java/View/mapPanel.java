@@ -3,6 +3,7 @@ package View;
 import Model.CarData;
 import View.RoutePainter;
 
+import org.jfree.chart.ChartColor;
 import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.OSMTileFactoryInfo;
 import org.jxmapviewer.input.CenterMapListener;
@@ -37,6 +38,8 @@ public class mapPanel extends JPanel {
         List<Painter<JXMapViewer>> painters = new ArrayList<Painter<JXMapViewer>>();
 
         List<GeoPosition> track =null;
+        int num = 0;
+        Paint[] cs =  ChartColor.createDefaultPaintArray();
         for(ArrayList<CarData> data : cd) {
             track = new ArrayList<>();
             for (CarData c : data) {
@@ -46,8 +49,8 @@ public class mapPanel extends JPanel {
             float r = rand.nextFloat();
             float g = rand.nextFloat();
             float b = rand.nextFloat();
-            Color random = new Color(r,g,b);
-            painters.add(new RoutePainter(track, random));
+            painters.add(new RoutePainter(track, (Color) cs[num]));
+            num++;
         }
 
         // Set the focus
