@@ -66,18 +66,50 @@ public class PanelChart{
     public XYDataset getSeriesCapacity(){
         XYSeriesCollection dataset = new XYSeriesCollection();
         int num = 1;
+        int numSeries = 1;
         for(ArrayList<CarData> cd : this.data){
-            XYSeries s2 = new XYSeries("Capacity of the Battery");
+            XYSeries s2 = new XYSeries("Serie "+numSeries);
             for(CarData data : cd) {
-                s2.add(num, data.getTemperature());
+                s2.add(num, data.getAHr());
                 num++;
+                numSeries++;
             }
             dataset.addSeries(s2);
         }
         return dataset;
     }
 
-    public JPanel getPanelChart(String title, String xLabel, String yLabel, XYDataset dataset){
+    public XYDataset getSeriesMotorPower(){
+        XYSeriesCollection dataset = new XYSeriesCollection();
+        int num = 1, numSeries = 1;
+        for(ArrayList<CarData> cd : this.data){
+            XYSeries s2 = new XYSeries("Serie "+numSeries);
+            for(CarData data : cd) {
+                s2.add(num, data.getMotorPower());
+                num++;
+            }
+            numSeries++;
+            dataset.addSeries(s2);
+        }
+        return dataset;
+    }
+
+    public XYDataset getSeriesSpeed(){
+        XYSeriesCollection dataset = new XYSeriesCollection();
+        int num = 1, numSeries = 1;
+        for(ArrayList<CarData> cd : this.data){
+            XYSeries s2 = new XYSeries("Serie "+numSeries);
+            for(CarData data : cd) {
+                s2.add(num, data.getSpeed());
+                num++;
+            }
+            numSeries++;
+            dataset.addSeries(s2);
+        }
+        return dataset;
+    }
+
+    public JFreeChart getPanelChart(String title, String xLabel, String yLabel, XYDataset dataset){
 
         JFreeChart chart = ChartFactory.createXYLineChart(
                 title,
@@ -89,13 +121,8 @@ public class PanelChart{
                 true,
                 false
         );
-        JPanel pan = new JPanel();
-        pan.setLayout(new BorderLayout());
-        ChartPanel CP = new ChartPanel(chart);
-        CP.setPreferredSize(new Dimension(800,500));
-        pan.add(CP, BorderLayout.CENTER);
-        pan.validate();
-        return pan;
+
+        return chart;
     }
 
 }

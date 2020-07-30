@@ -52,8 +52,10 @@ public class CSVReader {
                     double temp1 = Double.parseDouble(country[16]);
                     double temp2 = Double.parseDouble(country[18]);
                     double temperature = (temp1+temp2)/2;
+                    long motor = Long.parseLong(country[135]);
+                    float speed = Float.parseFloat(country[155]);
 
-                    data.add(new CarData(latitude,longitude,(double) charge/10000, temperature,AHr));
+                    data.add(new CarData(latitude,longitude,(double) charge/10000, temperature,AHr,motor,speed));
                 }
 
             }
@@ -102,12 +104,14 @@ public class CSVReader {
                         double longitude = longitudeDegrees + (longitudeMinutes / 60);
 
                         int charge = Integer.parseInt(country[6]);
-                        int AHr = Integer.parseInt(country[7]);
+                        int AHr = ((Integer.parseInt(country[7])/10000) * charge/10000) * 360;
                         double temp1 = Double.parseDouble(country[16]);
                         double temp2 = Double.parseDouble(country[18]);
                         double temperature = (temp1 + temp2) / 2;
+                        long motor = Long.parseLong(country[135]);
+                        float speed = Float.parseFloat(country[155]);
 
-                        dataRead.add(new CarData(latitude, longitude, (double) charge / 10000, temperature, AHr));
+                        dataRead.add(new CarData(latitude, longitude, (double) charge / 10000, temperature, AHr, motor,speed/100));
                     }
 
                 }

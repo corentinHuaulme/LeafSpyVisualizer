@@ -23,10 +23,13 @@ import java.util.List;
 public class mapPanel extends JPanel {
 
     private JXMapViewer map;
+    private ArrayList<ArrayList<CarData>> data;
+    private List<Painter<JXMapViewer>> painters = new ArrayList<Painter<JXMapViewer>>();
 
     public mapPanel(ArrayList<ArrayList<CarData>> cd){
 
         this.map = new JXMapViewer();
+        this.data = cd;
 
         // Create a TileFactoryInfo for OpenStreetMap
         TileFactoryInfo info = new OSMTileFactoryInfo();
@@ -35,7 +38,7 @@ public class mapPanel extends JPanel {
 
 
         // Create a compound painter that uses both the route-painter and the waypoint-painter
-        List<Painter<JXMapViewer>> painters = new ArrayList<Painter<JXMapViewer>>();
+        this.painters = new ArrayList<Painter<JXMapViewer>>();
 
         List<GeoPosition> track =null;
         int num = 0;
@@ -45,17 +48,14 @@ public class mapPanel extends JPanel {
             for (CarData c : data) {
                 track.add(new GeoPosition(c.getLatitude(), c.getLongitude()));
             }
-            Random rand = new Random();
-            float r = rand.nextFloat();
-            float g = rand.nextFloat();
-            float b = rand.nextFloat();
-            painters.add(new RoutePainter(track, (Color) cs[num]));
+            this.painters.add(new RoutePainter(track, (Color) cs[num]));
             num++;
         }
 
         // Set the focus
-        this.map.zoomToBestFit(new HashSet<GeoPosition>(track), 1);
-        //this.map.setZoom(12);
+        //this.map.zoomToBestFit(new HashSet<GeoPosition>(track), 0.01);
+        this.map.setZoom(10);
+        this.map.setCenterPosition(track.get(0));
 
        /* // Create waypoints from the geo-positions
         Set<Waypoint> waypoints = new HashSet<Waypoint>();
@@ -85,7 +85,7 @@ public class mapPanel extends JPanel {
 
        // painters.add(waypointPainter);
 
-        CompoundPainter<JXMapViewer> painter = new CompoundPainter<JXMapViewer>(painters);
+        CompoundPainter<JXMapViewer> painter = new CompoundPainter<JXMapViewer>(this.painters);
         this.map.setOverlayPainter(painter);
 
 
@@ -113,5 +113,27 @@ public class mapPanel extends JPanel {
         return this.map;
     }
 
+    public void addWaypoint(int x){
+        ArrayList<CarData> carData = new ArrayList<>();
+        for(ArrayList<CarData> cd : this.data){
+            for(CarData c : cd){
+                carData.add(c);
+            }
+        }
+
+        CarData pickedData = carData.get(x);
+        GeoPosition g = new GeoPosition(pickedData.getLatitude(), pickedData.getLongitude());
+
+        Set<Waypoint> waypoints = new HashSet<Waypoint>();
+        waypoints.add(new DefaultWaypoint(g));
+
+        WaypointPainter<Waypoint> waypointPainter = new WaypointPainter<Waypoint>();
+        waypointPainter.setWaypoints(waypoints);
+        CompoundPainter<JXMapViewer> painter = new CompoundPainter<JXMapViewer>(this.painters);
+        painter.addPainter(waypointPainter);
+        this.map.setOverlayPainter(painter);
+        this.map.revalidate();
+        this.map.repaint();
+    }
 
 }
