@@ -6,10 +6,15 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.resources.JFreeChartResources;
 import org.jfree.chart.title.TextTitle;
+import org.jfree.data.category.CategoryDataset;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.general.Dataset;
 import org.jfree.data.time.Month;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
@@ -31,98 +36,26 @@ public class PanelChart{
         this.data = cd;
     }
 
-    public XYDataset getSeriesCharge(){
-        XYSeriesCollection dataset = new XYSeriesCollection();
-        int num = 1;
-        int numSeries = 1;
-        for(ArrayList<CarData> cd : this.data){
-            XYSeries s2 = new XYSeries("Serie "+numSeries);
-            for(CarData data : cd) {
-                s2.add(num, data.getCharge());
-                num++;
-            }
-            numSeries++;
-            dataset.addSeries(s2);
-        }
-        return dataset;
+    public ArrayList<ArrayList<CarData>> getData() {
+        return data;
     }
 
-    public XYDataset getSeriesTemperatureBattery(){
-        XYSeriesCollection dataset = new XYSeriesCollection();
-        int num = 1;
-        int numSeries = 1;
-        for(ArrayList<CarData> cd : this.data){
-            XYSeries s2 = new XYSeries("Serie "+numSeries);
-            for(CarData data : cd) {
-                s2.add(num, data.getTemperature());
-                num++;
-            }
-            numSeries++;
-            dataset.addSeries(s2);
-        }
-        return dataset;
+    public Dataset getDatasetSpeed(){
+        return null;
     }
-
-    public XYDataset getSeriesCapacity(){
-        XYSeriesCollection dataset = new XYSeriesCollection();
-        int num = 1;
-        int numSeries = 1;
-        for(ArrayList<CarData> cd : this.data){
-            XYSeries s2 = new XYSeries("Serie "+numSeries);
-            for(CarData data : cd) {
-                s2.add(num, data.getAHr());
-                num++;
-                numSeries++;
-            }
-            dataset.addSeries(s2);
-        }
-        return dataset;
+    public Dataset getDatasetCharge(){
+        return null;
     }
-
-    public XYDataset getSeriesMotorPower(){
-        XYSeriesCollection dataset = new XYSeriesCollection();
-        int num = 1, numSeries = 1;
-        for(ArrayList<CarData> cd : this.data){
-            XYSeries s2 = new XYSeries("Serie "+numSeries);
-            for(CarData data : cd) {
-                s2.add(num, data.getMotorPower());
-                num++;
-            }
-            numSeries++;
-            dataset.addSeries(s2);
-        }
-        return dataset;
+    public Dataset getDatasetTemperature(){
+        return null;
     }
-
-    public XYDataset getSeriesSpeed(){
-        XYSeriesCollection dataset = new XYSeriesCollection();
-        int num = 1, numSeries = 1;
-        for(ArrayList<CarData> cd : this.data){
-            XYSeries s2 = new XYSeries("Serie "+numSeries);
-            for(CarData data : cd) {
-                s2.add(num, data.getSpeed());
-                num++;
-            }
-            numSeries++;
-            dataset.addSeries(s2);
-        }
-        return dataset;
+    public Dataset getDatasetCapacity(){
+        return null;
     }
-
-    public JFreeChart getPanelChart(String title, String xLabel, String yLabel, XYDataset dataset){
-
-        JFreeChart chart = ChartFactory.createXYLineChart(
-                title,
-                xLabel,
-                yLabel,
-                dataset,
-                PlotOrientation.VERTICAL,
-                true,
-                true,
-                false
-        );
-
-        return chart;
+    public Dataset getDatasetMotorPower(){
+        return null;
     }
-
+    public JFreeChart getPanelChart(String title, String xLabel, String yLabel, Dataset dataset){
+        return null;
+    }
 }

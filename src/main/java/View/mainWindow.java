@@ -1,270 +1,265 @@
 package View;
 
 import Controller.CSVReader;
+import Controller.ChartMouseOverListener;
 import Model.CarData;
 import org.jfree.chart.*;
+import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.ValueAxis;
-import org.jfree.chart.entity.ChartEntity;
-import org.jfree.chart.entity.XYItemEntity;
-import org.jfree.chart.plot.Marker;
-import org.jfree.chart.plot.ValueMarker;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.ui.Layer;
+import org.jfree.chart.entity.CategoryItemEntity;
+import org.jfree.chart.plot.*;
 import org.jfree.chart.ui.RectangleEdge;
-import org.jfree.data.io.CSV;
-import org.jfree.data.xy.XYDataset;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.data.general.Dataset;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
 import java.io.*;
-import java.lang.reflect.Array;
-import java.net.MalformedURLException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 
 public class mainWindow extends JPanel {
 
+    private PanelChart panelChart;
+    private ArrayList<ArrayList<CarData>> cd;
+
     public mainWindow(){
 
-        JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
-        jfc.setMultiSelectionEnabled(true);
-        File[] selectedFile = null;
-        int returnValue = jfc.showOpenDialog(null);
-        // int returnValue = jfc.showSaveDialog(null);
-
-        if (returnValue == JFileChooser.APPROVE_OPTION) {
-            selectedFile = jfc.getSelectedFiles();
-        }
-        ArrayList<ArrayList<CarData>> cd = new ArrayList<ArrayList<CarData>>();
-        cd = new CSVReader().readFiles(selectedFile);
-
-        mapPanel map = new mapPanel(cd);
-
-
-        PanelChart panelChart = new PanelChart(cd);
-        XYDataset charge = panelChart.getSeriesSpeed();
-        XYDataset temp = panelChart.getSeriesMotorPower();
-        this.setSize(800,800);
-        this.setLayout(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
-        JFreeChart firstChart = panelChart.getPanelChart("test","Time","Speed (km/h)",charge);
-
-        JPanel chartpan1 = new JPanel();
-        chartpan1.setLayout(new BorderLayout());
-        ChartPanel CP = new ChartPanel(firstChart);
-        CP.setPreferredSize(new Dimension(800,470));
-        chartpan1.add(CP, BorderLayout.CENTER);
-        chartpan1.validate();
-
-
-        JFreeChart secondChart = panelChart.getPanelChart("test","Time","Drive motor power (W)",temp);
-
-        JPanel chartpan2 = new JPanel();
-        chartpan2.setLayout(new BorderLayout());
-        ChartPanel CP2 = new ChartPanel(secondChart);
-        CP2.setPreferredSize(new Dimension(800,470));
-        chartpan2.add(CP2, BorderLayout.CENTER);
-        chartpan2.validate();
-
-
-        var list = new JList();
-
-        list.addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                String name = (String) list.getSelectedValue();
-            }
-        });
-
-        CP.addChartMouseListener(new ChartMouseListener() {
-            @Override
-            public void chartMouseClicked(ChartMouseEvent event) {
-
-            }
-
-            @Override
-            public void chartMouseMoved(ChartMouseEvent event) {
-                Rectangle2D dataArea = CP.getScreenDataArea();
-                JFreeChart chart = event.getChart();
-                XYPlot plot = (XYPlot) chart.getPlot();
-                ValueAxis xAxis = plot.getDomainAxis();
-                double x = xAxis.java2DToValue(event.getTrigger().getX(), dataArea,
-                        RectangleEdge.BOTTOM);
-
-                ValueMarker marker = new ValueMarker(x);
-                marker.setPaint(Color.black);
-
-                XYPlot plot2 = (XYPlot) secondChart.getPlot();
-
-                plot.clearDomainMarkers();
-                plot.clearRangeMarkers();
-                plot.addDomainMarker(marker);
-                //plot.addRangeMarker(new ValueMarker((Double) plot.getDataset().getY(0, (int) x-1)));
-
-
-                plot2.clearDomainMarkers();
-                plot2.clearRangeMarkers();
-                plot2.addDomainMarker(marker);
-                //plot2.addRangeMarker(new ValueMarker((Double) plot2.getDataset().getY(0, (int) x-1)));
-
-                map.addWaypoint((int) x);
-
-
-            }
-        });
-
-
-        JScrollPane spane = new JScrollPane();
-        spane.getViewport().add(list);
-
-        JLabel label = new JLabel("Aguirre, der Zorn Gottes");
-        label.setFont(new Font("Serif", Font.PLAIN, 12));
-
-        list.add(label);
-
-
-        JPanel topLeft = new JPanel();
-        JComboBox chartChooser = new JComboBox();
-
-        chartChooser.addItem("SOC");
-        chartChooser.addItem("Speed");
-        chartChooser.addItem("Battery Temperature");
-        chartChooser.addItem("Battery Capacity");
-        chartChooser.addItem("Motor Power");
-
-        topLeft.setLayout(new BorderLayout());
-
-        topLeft.add(chartpan1,BorderLayout.CENTER);
-        topLeft.add(chartChooser, BorderLayout.NORTH);
-
-        chartChooser.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println(e.getActionCommand()+ " - "+chartChooser.getItemAt(chartChooser.getSelectedIndex()));
-                switch(chartChooser.getSelectedIndex()){
-                    case 0 :
-                        System.out.println("test");
-                        firstChart.getXYPlot().setDataset(panelChart.getSeriesCharge());
-                        break;
-                    case 1 :
-                        firstChart.getXYPlot().setDataset(panelChart.getSeriesSpeed());
-                        break;
-                    case 2 :
-                        firstChart.getXYPlot().setDataset(panelChart.getSeriesTemperatureBattery());
-                        break;
-                    case 3 :
-                        firstChart.getXYPlot().setDataset(panelChart.getSeriesCapacity());
-                        break;
-                    case 4 :
-                        firstChart.getXYPlot().setDataset(panelChart.getSeriesMotorPower());
-                        break;
-                }
-            }
-        });
-
-
-        JPanel bottomLeft = new JPanel();
-        JComboBox chartChooserBottom = new JComboBox();
-
-        chartChooserBottom.addItem("SOC");
-        chartChooserBottom.addItem("Speed");
-        chartChooserBottom.addItem("Battery Temperature");
-        chartChooserBottom.addItem("Battery Capacity");
-        chartChooserBottom.addItem("Motor Power");
-
-        bottomLeft.setLayout(new BorderLayout());
-
-        bottomLeft.add(chartpan2,BorderLayout.CENTER);
-        bottomLeft.add(chartChooserBottom, BorderLayout.NORTH);
-
-        chartChooserBottom.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println(e.getActionCommand()+ " - "+chartChooserBottom.getItemAt(chartChooserBottom.getSelectedIndex()));
-                switch(chartChooserBottom.getSelectedIndex()){
-                    case 0 :
-                        System.out.println("test");
-                        secondChart.getXYPlot().setDataset(panelChart.getSeriesCharge());
-                        break;
-                    case 1 :
-                        secondChart.getXYPlot().setDataset(panelChart.getSeriesSpeed());
-                        break;
-                    case 2 :
-                        secondChart.getXYPlot().setDataset(panelChart.getSeriesTemperatureBattery());
-                        break;
-                    case 3 :
-                        secondChart.getXYPlot().setDataset(panelChart.getSeriesCapacity());
-                        break;
-                    case 4 :
-                        secondChart.getXYPlot().setDataset(panelChart.getSeriesMotorPower());
-                        break;
-                }
-            }
-        });
-
-        JPanel topRight = new JPanel();
-        JButton load = new JButton("Load files");
-        topRight.setLayout(new BorderLayout());
-
-        topRight.add(load,BorderLayout.NORTH);
-        topRight.add(map.getMap(),BorderLayout.CENTER);
-
-        load.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
-                jfc.setMultiSelectionEnabled(true);
-                File[] selectedFile = null;
-                int returnValue = jfc.showOpenDialog(null);
-                // int returnValue = jfc.showSaveDialog(null);
-
-                if (returnValue == JFileChooser.APPROVE_OPTION) {
-                    selectedFile = jfc.getSelectedFiles();
-                }
-            }
-        });
-
-
-        c.gridx = 0;
-        c.gridy = 0;
-        c.gridwidth = 1;
-        this.add(topLeft, c);
-
-        c.fill = java.awt.GridBagConstraints.BOTH;
-        c.weightx = 1.0;
-        c.weighty = 1.0;
-        c.gridx = 2;
-        c.gridy = 0;
-        c.gridwidth = 2;
-
-        this.add(topRight, c);
-
-        GridBagConstraints gc = new GridBagConstraints();
-        gc.gridx = 0;
-        gc.gridy = 1;
-        gc.gridwidth = 1;
-        this.add(bottomLeft, gc);
-
-        gc.fill = GridBagConstraints.BOTH;
-        gc.gridx = 2;
-        gc.gridy = 1;
-        gc.gridwidth = 2;
-
-        this.add(spane,gc);
+        refreshWindow();
 
         this.setVisible(true);
 
-        System.out.println(this.getLayout().getClass());
     }
 
+    public void refreshWindow(){
+        this.removeAll();
+        loadComponents(this.fileChooser());
+    }
+
+    public void loadComponents(File[] files){
+
+       cd = new ArrayList<ArrayList<CarData>>();
+       cd = new CSVReader().readFiles(files);
+
+       mapPanel map = new mapPanel(cd);
+
+
+       panelChart = new PanelChartLine(cd);
+       panelChart.getDatasetSpeed();
+       Dataset charge = panelChart.getDatasetCharge();
+       Dataset temp = panelChart.getDatasetTemperature();
+       this.setSize(800,800);
+       this.setLayout(new GridBagLayout());
+       GridBagConstraints c = new GridBagConstraints();
+       JFreeChart firstChart = panelChart.getPanelChart("test","Time","Speed (km/h)",charge);
+
+       JPanel chartpan1 = new JPanel();
+       chartpan1.setLayout(new BorderLayout());
+       ChartPanel CP = new ChartPanel(firstChart);
+       CP.setHorizontalAxisTrace(true);
+       CP.setPreferredSize(new Dimension(800,470));
+       chartpan1.add(CP, BorderLayout.CENTER);
+       chartpan1.validate();
+
+
+       JFreeChart secondChart = panelChart.getPanelChart("test","Time","Drive motor power (W)",temp);
+
+       JPanel chartpan2 = new JPanel();
+       chartpan2.setLayout(new BorderLayout());
+       ChartPanel CP2 = new ChartPanel(secondChart);
+
+       // ((DateAxis)(secondChart.getXYPlot().getRangeAxis())).setDateFormatOverride(new SimpleDateFormat("hh:mm:ss"));
+
+       CP2.setPreferredSize(new Dimension(800,470));
+       chartpan2.add(CP2, BorderLayout.CENTER);
+       chartpan2.validate();
+
+
+       CP.addChartMouseListener(new ChartMouseOverListener(CP,CP2,map));
+       CP2.addChartMouseListener(new ChartMouseOverListener(CP2,CP,map));
+
+
+
+
+       JPanel topLeft = new JPanel();
+       JComboBox chartChooser = new JComboBox();
+
+       chartChooser.addItem("SOC");
+       chartChooser.addItem("Speed");
+       chartChooser.addItem("Battery Temperature");
+       chartChooser.addItem("Battery Capacity");
+       chartChooser.addItem("Motor Power");
+
+       JComboBox chartTypeChooser = new JComboBox();
+
+       chartTypeChooser.addItem("Line");
+       chartTypeChooser.addItem("Bar");
+
+
+       topLeft.setLayout(new BorderLayout());
+
+       JPanel topLeftChooser = new JPanel();
+       topLeftChooser.setLayout(new GridLayout(0,2));
+       topLeftChooser.add(chartChooser);
+       topLeftChooser.add(chartTypeChooser);
+
+       topLeft.add(chartpan1,BorderLayout.CENTER);
+       topLeft.add(topLeftChooser,BorderLayout.NORTH);
+
+        chartChooser.addActionListener(e -> {
+            switch (chartChooser.getSelectedIndex()) {
+                case 0:
+                    CP.setChart(panelChart.getPanelChart("Charge of the Battery", "Time", "Percentage of the Charge", panelChart.getDatasetCharge()));
+                    break;
+                case 1:
+                    CP.setChart(panelChart.getPanelChart("Speed of the Car", "Time", "Speed of the Car (km/h)", panelChart.getDatasetSpeed()));
+                    break;
+                case 2:
+                    CP.setChart(panelChart.getPanelChart("Temperature of the Battery", "Time", "Temperature of the Battery", panelChart.getDatasetTemperature()));
+                    break;
+                case 3:
+                    CP.setChart(panelChart.getPanelChart("Capacity of the Battery", "Time", "Capacity of the Battery", panelChart.getDatasetCapacity()));
+                    break;
+                case 4:
+                    CP.setChart(panelChart.getPanelChart("Motor Power", "Time", "Power comsumed by the Motor (W)", panelChart.getDatasetMotorPower()));
+                    break;
+            }
+        });
+
+
+
+       JPanel bottomLeft = new JPanel();
+       JComboBox chartChooserBottom = new JComboBox();
+
+       chartChooserBottom.addItem("SOC");
+       chartChooserBottom.addItem("Speed");
+       chartChooserBottom.addItem("Battery Temperature");
+       chartChooserBottom.addItem("Battery Capacity");
+       chartChooserBottom.addItem("Motor Power");
+
+       bottomLeft.setLayout(new BorderLayout());
+
+       bottomLeft.add(chartpan2,BorderLayout.CENTER);
+       bottomLeft.add(chartChooserBottom, BorderLayout.NORTH);
+
+       chartChooserBottom.addActionListener(e -> {
+           System.out.println(e.getActionCommand()+ " - "+chartChooserBottom.getItemAt(chartChooserBottom.getSelectedIndex()));
+           switch(chartChooserBottom.getSelectedIndex()){
+               case 0 :
+                   CP2.setChart(panelChart.getPanelChart("Charge of the Battery","Time","Percentage of the Charge",panelChart.getDatasetCharge()));
+                   break;
+               case 1 :
+                   CP2.setChart(panelChart.getPanelChart("Speed of the Car","Time","Speed of the Car (km/h)",panelChart.getDatasetSpeed()));
+                   break;
+               case 2 :
+                   CP2.setChart(panelChart.getPanelChart("Temperature of the Battery","Time","Temperature of the Battery (°C)",panelChart.getDatasetTemperature()));
+                   break;
+               case 3 :
+                   CP2.setChart(panelChart.getPanelChart("Capacity of the Battery","Time","Capacity of the Battery",panelChart.getDatasetCapacity()));
+                   break;
+               case 4 :
+                   CP2.setChart(panelChart.getPanelChart("Motor Power","Time","Drive motor power (W)",panelChart.getDatasetMotorPower()));
+                   break;
+           }
+       });
+
+
+        chartTypeChooser.addActionListener(e -> {
+            switch(chartTypeChooser.getSelectedIndex()) {
+                case 0:
+                    panelChart = new PanelChartLine(cd);
+                    CP.setChart(panelChart.getPanelChart(String.valueOf(CP.getChart().getTitle()),
+                            CP.getChart().getCategoryPlot().getDomainAxis().getLabel(),
+                            CP.getChart().getCategoryPlot().getRangeAxis().getLabel(),
+                            panelChart.getDatasetCharge()));
+                    CP2.setChart(panelChart.getPanelChart(String.valueOf(CP2.getChart().getTitle()),
+                            CP2.getChart().getCategoryPlot().getDomainAxis().getLabel(),
+                            CP2.getChart().getCategoryPlot().getRangeAxis().getLabel(),
+                            panelChart.getDatasetCharge()));
+                    chartChooser.setSelectedIndex(chartChooser.getSelectedIndex());
+                    chartChooserBottom.setSelectedIndex(chartChooserBottom.getSelectedIndex());
+                    break;
+                case 1:
+                    panelChart = new PanelChartBar(cd);
+                    CP.setChart(panelChart.getPanelChart(String.valueOf(CP.getChart().getTitle()),
+                            CP.getChart().getXYPlot().getDomainAxis().getLabel(),
+                            CP.getChart().getXYPlot().getRangeAxis().getLabel(),
+                            panelChart.getDatasetCharge()));
+                    CP2.setChart(panelChart.getPanelChart(String.valueOf(CP2.getChart().getTitle()),
+                            CP2.getChart().getXYPlot().getDomainAxis().getLabel(),
+                            CP2.getChart().getXYPlot().getRangeAxis().getLabel(),
+                            panelChart.getDatasetCharge()));
+                    chartChooser.setSelectedIndex(chartChooser.getSelectedIndex());
+                    chartChooserBottom.setSelectedIndex(chartChooserBottom.getSelectedIndex());
+                    break;
+            }
+        });
+
+
+
+       JPanel topRight = new JPanel();
+       JButton load = new JButton("Load files");
+       topRight.setLayout(new BorderLayout());
+
+       topRight.add(load,BorderLayout.NORTH);
+       topRight.add(map.getMap(),BorderLayout.CENTER);
+
+       load.addActionListener(e -> refreshWindow());
+
+       PanelChartPie pcp = new PanelChartPie(cd);
+        JFreeChart pieChart = pcp.getPanelChart("Battery usage","Time","Speed (km/h)",pcp.getDatasetSpeed());
+        JPanel chartpie = new JPanel();
+        chartpie.setLayout(new BorderLayout());
+        ChartPanel CP3 = new ChartPanel(pieChart);
+        //CP3.setHorizontalAxisTrace(true);
+        CP3.setPreferredSize(new Dimension(800,470));
+        chartpie.add(CP3, BorderLayout.CENTER);
+        chartpie.validate();
+
+
+       c.gridx = 0;
+       c.gridy = 0;
+       c.gridwidth = 1;
+       this.add(topLeft, c);
+
+       c.fill = java.awt.GridBagConstraints.BOTH;
+       c.weightx = 1.0;
+       c.weighty = 1.0;
+       c.gridx = 2;
+       c.gridy = 0;
+       c.gridwidth = 2;
+
+       this.add(topRight, c);
+
+       GridBagConstraints gc = new GridBagConstraints();
+       gc.gridx = 0;
+       gc.gridy = 1;
+       gc.gridwidth = 1;
+       this.add(bottomLeft, gc);
+
+       gc.gridx = 1;
+       gc.gridy = 1;
+       gc.gridwidth = 2;
+       this.add(chartpie,gc);
+
+
+    }
+
+    public File[] fileChooser(){
+       JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
+       jfc.setMultiSelectionEnabled(true);
+       File[] selectedFile = null;
+       int returnValue = jfc.showOpenDialog(null);
+       // int returnValue = jfc.showSaveDialog(null);
+
+       if (returnValue == JFileChooser.APPROVE_OPTION) {
+           selectedFile = jfc.getSelectedFiles();
+       }
+       return selectedFile;
+    }
     public static void main(String[] args) {
         JFrame frame = new JFrame("LeafSpy visualizer");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -279,4 +274,4 @@ public class mainWindow extends JPanel {
         frame.setVisible(true);
 
     }
-}
+    }

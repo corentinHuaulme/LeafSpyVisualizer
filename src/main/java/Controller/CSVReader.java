@@ -6,9 +6,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.DateTimeException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class CSVReader {
 
@@ -27,8 +30,10 @@ public class CSVReader {
 
                 if(!country[0].equals("Date/Time")) {
 
-                    //DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-                    //LocalDateTime date = LocalDateTime.parse(country[0], formatter);
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+                    LocalDateTime date = LocalDateTime.parse(country[0], formatter);
+
+                    Date d = Date.from(date.atZone(ZoneId.systemDefault()).toInstant());
 
 
                     /* Conversion of lat/long to the recognized format*/
@@ -54,8 +59,10 @@ public class CSVReader {
                     double temperature = (temp1+temp2)/2;
                     long motor = Long.parseLong(country[135]);
                     float speed = Float.parseFloat(country[155]);
+                    long aux = Long.parseLong(country[136])*100;
+                    long ac = Long.parseLong(country[137])*250;
 
-                    data.add(new CarData(latitude,longitude,(double) charge/10000, temperature,AHr,motor,speed));
+                    data.add(new CarData(d,latitude, longitude, (double) charge / 10000, temperature, AHr, motor,speed/100,aux,ac));
                 }
 
             }
@@ -83,9 +90,16 @@ public class CSVReader {
 
                     if (!country[0].equals("Date/Time")) {
 
-                        //DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-                        //LocalDateTime date = LocalDateTime.parse(country[0], formatter);
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+                        LocalDateTime date = null;
+                        try{
+                            date = LocalDateTime.parse(country[0], formatter);
+                        }catch(DateTimeException e){
+                            formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd H:mm:ss");
+                            date = LocalDateTime.parse(country[0], formatter);
+                        }
 
+                        Date d = Date.from(date.atZone(ZoneId.systemDefault()).toInstant());
 
                         /* Conversion of lat/long to the recognized format*/
                         double latitudeDegrees = Double.parseDouble(country[1].split(" ")[0]);
@@ -110,8 +124,11 @@ public class CSVReader {
                         double temperature = (temp1 + temp2) / 2;
                         long motor = Long.parseLong(country[135]);
                         float speed = Float.parseFloat(country[155]);
+                        long aux = Long.parseLong(country[136])*100;
+                        long ac = Long.parseLong(country[137])*250;
 
-                        dataRead.add(new CarData(latitude, longitude, (double) charge / 10000, temperature, AHr, motor,speed/100));
+
+                        dataRead.add(new CarData(d,latitude, longitude, (double) charge / 10000, temperature, AHr, motor,speed/100,aux,ac));
                     }
 
                 }
