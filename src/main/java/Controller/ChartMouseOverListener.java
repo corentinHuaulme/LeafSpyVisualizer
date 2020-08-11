@@ -1,5 +1,6 @@
 package Controller;
 
+import Model.CarData;
 import View.mapPanel;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
@@ -8,9 +9,13 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.*;
 import org.jfree.chart.ui.RectangleEdge;
+import org.jfree.data.time.*;
+import org.jfree.data.xy.XYSeriesCollection;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
+import java.sql.Time;
+import java.util.Date;
 
 public class ChartMouseOverListener implements ChartMouseListener {
 
@@ -33,14 +38,16 @@ public class ChartMouseOverListener implements ChartMouseListener {
     public void chartMouseMoved(ChartMouseEvent event) {
         Rectangle2D dataArea = this.cp.getScreenDataArea( );
         JFreeChart chart = event.getChart();
-        double x = 0.0;
+        long x = 0;
+        int index = 0;
         ValueMarker marker;
         Plot plot = chart.getPlot();
         if(plot instanceof XYPlot){
             XYPlot xyplot = (XYPlot) chart.getPlot();
             ValueAxis xAxis = xyplot.getDomainAxis();
-            x = xAxis.java2DToValue(event.getTrigger().getX(), dataArea,
+            x = (long) xAxis.java2DToValue(event.getTrigger().getX(), dataArea,
                     RectangleEdge.BOTTOM);
+            index = getIndex(x);
             xyplot.clearDomainMarkers();
             xyplot.clearRangeMarkers();
             marker = new ValueMarker(x);
@@ -76,8 +83,24 @@ public class ChartMouseOverListener implements ChartMouseListener {
 
         //plot2.addRangeMarker(new ValueMarker((Double) plot2.getDataset().getY(0, (int) x-1)));
 
-        this.map.addWaypoint((int) x);
+        this.map.addWaypoint(index);
 
 
+    }
+    private int getIndex(long d){
+        TimeSeriesCollection dataset = (TimeSeriesCollection) this.cp.getChart().getXYPlot().getDataset();
+        int num = 0;
+        for(Object o : dataset.getSeries()){
+            TimeSeries ts = (TimeSeries)o;
+            for(Object o1 : ts.getItems()){
+                TimeSeriesDataItem tsdi = (TimeSeriesDataItem) o1;
+                Date cd = tsdi.getPeriod().getEnd();
+                if(cd.getTime() >= d){
+                    return num;
+                }
+                num++;
+            }
+        }
+        return num;
     }
 }

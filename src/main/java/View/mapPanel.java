@@ -120,20 +120,23 @@ public class mapPanel extends JPanel {
                 carData.add(c);
             }
         }
+        try {
+            CarData pickedData = carData.get(x);
+            GeoPosition g = new GeoPosition(pickedData.getLatitude(), pickedData.getLongitude());
 
-        CarData pickedData = carData.get(x);
-        GeoPosition g = new GeoPosition(pickedData.getLatitude(), pickedData.getLongitude());
+            Set<Waypoint> waypoints = new HashSet<Waypoint>();
+            waypoints.add(new DefaultWaypoint(g));
 
-        Set<Waypoint> waypoints = new HashSet<Waypoint>();
-        waypoints.add(new DefaultWaypoint(g));
+            WaypointPainter<Waypoint> waypointPainter = new WaypointPainter<Waypoint>();
+            waypointPainter.setWaypoints(waypoints);
+            CompoundPainter<JXMapViewer> painter = new CompoundPainter<JXMapViewer>(this.painters);
+            painter.addPainter(waypointPainter);
+            this.map.setOverlayPainter(painter);
+            this.map.revalidate();
+            this.map.repaint();
+        }catch(Exception e){
 
-        WaypointPainter<Waypoint> waypointPainter = new WaypointPainter<Waypoint>();
-        waypointPainter.setWaypoints(waypoints);
-        CompoundPainter<JXMapViewer> painter = new CompoundPainter<JXMapViewer>(this.painters);
-        painter.addPainter(waypointPainter);
-        this.map.setOverlayPainter(painter);
-        this.map.revalidate();
-        this.map.repaint();
+        }
     }
 
 }

@@ -3,9 +3,6 @@ package View;
 import Model.CarData;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.data.category.CategoryDataset;
-import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.Dataset;
 import org.jfree.data.time.*;
 import org.jfree.data.xy.XYDataset;
@@ -22,84 +19,77 @@ public class PanelChartLine extends PanelChart{
 
     @Override
     public XYDataset getDatasetSpeed(){
-        XYSeriesCollection dataset = new XYSeriesCollection();
-        int num = 1;
+        TimeSeriesCollection dataset = new TimeSeriesCollection();
+
         int numSeries = 1;
         for(ArrayList<CarData> cd : this.getData()){
-            XYSeries s2 = new XYSeries("Serie "+numSeries);
+            TimeSeries series1 = new TimeSeries("Series "+numSeries);
             for(CarData data : cd) {
-                s2.add(num, data.getSpeed());
-                num++;
+                series1.add(new Second(data.getDate()), data.getSpeed());
             }
             numSeries++;
-            dataset.addSeries(s2);
+            dataset.addSeries(series1);
         }
         return dataset;
     }
 
     @Override
     public XYDataset getDatasetCharge(){
-        XYSeriesCollection dataset = new XYSeriesCollection();
-        int num = 1;
+        TimeSeriesCollection dataset = new TimeSeriesCollection();
+
         int numSeries = 1;
         for(ArrayList<CarData> cd : this.getData()){
-            XYSeries s2 = new XYSeries("Serie "+numSeries);
+            TimeSeries series1 = new TimeSeries("Series "+numSeries);
             for(CarData data : cd) {
-                s2.add(num, data.getCharge());
-                num++;
+                series1.add(new Second(data.getDate()), data.getCharge());
             }
             numSeries++;
-            dataset.addSeries(s2);
+            dataset.addSeries(series1);
         }
         return dataset;
     }
 
     @Override
     public XYDataset getDatasetCapacity(){
-        XYSeriesCollection dataset = new XYSeriesCollection();
-        int num = 1;
+        TimeSeriesCollection dataset = new TimeSeriesCollection();
+
         int numSeries = 1;
         for(ArrayList<CarData> cd : this.getData()){
-            XYSeries s2 = new XYSeries("Serie "+numSeries);
+            TimeSeries series1 = new TimeSeries("Series "+numSeries);
             for(CarData data : cd) {
-                s2.add(num, data.getAHr());
-                num++;
+                series1.add(new Second(data.getDate()), data.getAHr());
             }
             numSeries++;
-            dataset.addSeries(s2);
+            dataset.addSeries(series1);
         }
         return dataset;
     }
     @Override
     public XYDataset getDatasetMotorPower(){
-        XYSeriesCollection dataset = new XYSeriesCollection();
-        int num = 1;
+        TimeSeriesCollection dataset = new TimeSeriesCollection();
+
         int numSeries = 1;
         for(ArrayList<CarData> cd : this.getData()){
-            XYSeries s2 = new XYSeries("Serie "+numSeries);
+            TimeSeries series1 = new TimeSeries("Series "+numSeries);
             for(CarData data : cd) {
-                s2.add(num, data.getMotorPower());
-                num++;
+                series1.add(new Second(data.getDate()), data.getMotorPower());
             }
             numSeries++;
-            dataset.addSeries(s2);
+            dataset.addSeries(series1);
         }
         return dataset;
     }
     @Override
     public XYDataset getDatasetTemperature(){
-        XYSeriesCollection dataset = new XYSeriesCollection();
+        TimeSeriesCollection dataset = new TimeSeriesCollection();
 
-
-        int num = 1;
-        int numSeries = 1;
-        for(ArrayList<CarData> cd : this.getData()){
-            XYSeries series1 = new XYSeries("Series "+numSeries);
-            for(CarData data : cd) {
-                series1.add(num, data.getTemperature());
-                num++;
+        for(int i=0;i<4;i++) {
+            TimeSeries series1 = new TimeSeries("Sensor " + (i+1));
+            for (ArrayList<CarData> cd : this.getData()) {
+                for (CarData data : cd) {
+                    series1.add(new Second(data.getDate()), data.getTemperature()[i]);
+                }
             }
-            numSeries++;
             dataset.addSeries(series1);
         }
         return dataset;
@@ -109,17 +99,14 @@ public class PanelChartLine extends PanelChart{
     public JFreeChart getPanelChart(String title, String xLabel, String yLabel, Dataset dataset){
 
 
-        JFreeChart chart = ChartFactory.createXYLineChart(
+        return ChartFactory.createTimeSeriesChart(
                 title,
                 xLabel,
                 yLabel,
                 (XYDataset) dataset,
-                PlotOrientation.VERTICAL,
                 true,
-                true,
-                false
-        );
+                false,
+                false);
 
-        return chart;
     }
 }

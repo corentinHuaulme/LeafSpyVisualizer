@@ -54,15 +54,17 @@ public class CSVReader {
 
                     int charge = Integer.parseInt(country[6]);
                     int AHr = Integer.parseInt(country[7]);
-                    double temp1 = Double.parseDouble(country[16]);
-                    double temp2 = Double.parseDouble(country[18]);
-                    double temperature = (temp1+temp2)/2;
+                    int i=0;
+                    double[] temps = new double[4];
+                    for(i = 0;i<4;i++){
+                        temps[i] = Double.parseDouble(country[15+(i*2)]);
+                    }
                     long motor = Long.parseLong(country[135]);
                     float speed = Float.parseFloat(country[155]);
                     long aux = Long.parseLong(country[136])*100;
                     long ac = Long.parseLong(country[137])*250;
 
-                    data.add(new CarData(d,latitude, longitude, (double) charge / 10000, temperature, AHr, motor,speed/100,aux,ac));
+                    data.add(new CarData(d,latitude, longitude, (double) charge / 10000, temps, AHr, motor,speed/100,aux,ac));
                 }
 
             }
@@ -119,16 +121,22 @@ public class CSVReader {
 
                         int charge = Integer.parseInt(country[6]);
                         int AHr = ((Integer.parseInt(country[7])/10000) * charge/10000) * 360;
-                        double temp1 = Double.parseDouble(country[16]);
-                        double temp2 = Double.parseDouble(country[18]);
-                        double temperature = (temp1 + temp2) / 2;
+                        int i=0;
+                        double[] temps = new double[4];
+                        for(i = 1;i<=4;i++){
+                            if(country[14+(i*2)].toLowerCase().equals("none".toLowerCase())){
+                                temps[i-1] = 0.0;
+                            }else {
+                                temps[i-1] = Double.parseDouble(country[14 + (i * 2)]);
+                            }
+                        }
                         long motor = Long.parseLong(country[135]);
                         float speed = Float.parseFloat(country[155]);
                         long aux = Long.parseLong(country[136])*100;
                         long ac = Long.parseLong(country[137])*250;
 
 
-                        dataRead.add(new CarData(d,latitude, longitude, (double) charge / 10000, temperature, AHr, motor,speed/100,aux,ac));
+                        dataRead.add(new CarData(d,latitude, longitude, (double) charge / 10000, temps, AHr, motor,speed/100,aux,ac));
                     }
 
                 }

@@ -10,14 +10,14 @@ public class CarData {
     private double latitude;
     private double longitude;
     private double charge;
-    private double temperature;
+    private double[] temperature;
     private int AHr;
     private long motorPower;
     private float speed;
     private long auxPower;
     private long acPower;
 
-    public CarData(Date date, double latitude, double longitude, double charge, double temperature, int AHr, long motorPower,float speed, long auxPower, long acPower) {
+    public CarData(Date date, double latitude, double longitude, double charge, double[] temperature, int AHr, long motorPower,float speed, long auxPower, long acPower) {
         this.date = date;
         this.charge = charge;
         this.temperature = temperature;
@@ -34,21 +34,13 @@ public class CarData {
         return this.charge;
     }
 
-    public double getTemperature(){
-        return this.temperature;
-    }
+    public double[] getTemperature(){ return this.temperature; }
 
-    public int getAHr() {
-        return AHr;
-    }
+    public int getAHr() { return AHr; }
 
-    public double getLatitude() {
-        return latitude;
-    }
+    public double getLatitude() { return latitude; }
 
-    public double getLongitude() {
-        return longitude;
-    }
+    public double getLongitude() { return longitude; }
 
     public long getMotorPower() { return motorPower; }
 

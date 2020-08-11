@@ -83,12 +83,14 @@ public class PanelChartBar extends PanelChart{
         DefaultCategoryDataset dset = new DefaultCategoryDataset();
         int num = 1;
         int numSeries = 1;
-        for(ArrayList<CarData> cd : this.getData()){
-            for(CarData data : cd) {
-                dset.addValue((Number) data.getTemperature(),"Serie "+numSeries,num);
-                num++;
+        for(int i=0;i<4;i++) {
+            for (ArrayList<CarData> cd : this.getData()) {
+                for (CarData data : cd) {
+                    dset.addValue((Number) data.getTemperature()[i], "Serie " + numSeries, num);
+                    num++;
+                }
+                numSeries++;
             }
-            numSeries++;
         }
         return dset;
     }

@@ -4,12 +4,22 @@ import Controller.CSVReader;
 import Controller.ChartMouseOverListener;
 import Model.CarData;
 import org.jfree.chart.*;
-import org.jfree.chart.axis.CategoryAxis;
-import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.axis.*;
 import org.jfree.chart.entity.CategoryItemEntity;
 import org.jfree.chart.plot.*;
+import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
+import org.jfree.chart.renderer.xy.XYBarRenderer;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.ui.RectangleEdge;
+import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.data.Range;
 import org.jfree.data.general.Dataset;
+import org.jfree.data.time.Day;
+import org.jfree.data.time.Minute;
+import org.jfree.data.time.TimeSeriesCollection;
+import org.jfree.data.xy.*;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
@@ -18,6 +28,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 
@@ -54,24 +65,31 @@ public class mainWindow extends JPanel {
        this.setSize(800,800);
        this.setLayout(new GridBagLayout());
        GridBagConstraints c = new GridBagConstraints();
-       JFreeChart firstChart = panelChart.getPanelChart("test","Time","Speed (km/h)",charge);
+       JFreeChart firstChart = panelChart.getPanelChart("Charge of the Battery","Time","Percentage of charge",charge);
 
        JPanel chartpan1 = new JPanel();
        chartpan1.setLayout(new BorderLayout());
        ChartPanel CP = new ChartPanel(firstChart);
-       CP.setHorizontalAxisTrace(true);
+       //CP.setHorizontalAxisTrace(true);
        CP.setPreferredSize(new Dimension(800,470));
        chartpan1.add(CP, BorderLayout.CENTER);
        chartpan1.validate();
 
 
-       JFreeChart secondChart = panelChart.getPanelChart("test","Time","Drive motor power (W)",temp);
+       JFreeChart secondChart = panelChart.getPanelChart("Temperature of the Battery","Time","Temperature (°C)",temp);
+       XYPlot plot = secondChart.getXYPlot();
+       DateAxis axis = (DateAxis) plot.getDomainAxis();
+       String dateFormat = "dd/MM HH:mm";
+       axis.setDateFormatOverride(new SimpleDateFormat(dateFormat));
+
+       plot = firstChart.getXYPlot();
+       axis = (DateAxis) plot.getDomainAxis();
+       axis.setDateFormatOverride(new SimpleDateFormat(dateFormat));
 
        JPanel chartpan2 = new JPanel();
        chartpan2.setLayout(new BorderLayout());
        ChartPanel CP2 = new ChartPanel(secondChart);
 
-       // ((DateAxis)(secondChart.getXYPlot().getRangeAxis())).setDateFormatOverride(new SimpleDateFormat("hh:mm:ss"));
 
        CP2.setPreferredSize(new Dimension(800,470));
        chartpan2.add(CP2, BorderLayout.CENTER);
@@ -127,6 +145,10 @@ public class mainWindow extends JPanel {
                     CP.setChart(panelChart.getPanelChart("Motor Power", "Time", "Power comsumed by the Motor (W)", panelChart.getDatasetMotorPower()));
                     break;
             }
+            XYPlot p = CP.getChart().getXYPlot();
+            DateAxis da = (DateAxis) p.getDomainAxis();
+            String dateF= "dd/MM HH:mm";
+            da.setDateFormatOverride(new SimpleDateFormat(dateF));
         });
 
 
@@ -164,8 +186,41 @@ public class mainWindow extends JPanel {
                    CP2.setChart(panelChart.getPanelChart("Motor Power","Time","Drive motor power (W)",panelChart.getDatasetMotorPower()));
                    break;
            }
+           XYPlot p = CP2.getChart().getXYPlot();
+           DateAxis da = (DateAxis) p.getDomainAxis();
+           String dateF= "dd/MM HH:mm";
+           da.setDateFormatOverride(new SimpleDateFormat(dateF));
        });
+// create plot ...
+        // create subplot 1...
+      /*  final TimeSeriesCollection data1 = panelChart.getDatasetCharge();
+        final XYItemRenderer renderer1 = new StandardXYItemRenderer();
+        final XYPlot subplot1 = new XYPlot(data1, null, new NumberAxis("Charge"),  renderer1);
 
+        // create subplot 2...
+        final DefaultXYDataset  data2 = (DefaultXYDataset) panelChart.getDatasetTemperature();
+        final XYItemRenderer renderer2 = new StandardXYItemRenderer();
+        final XYPlot subplot2 = new XYPlot(data2, null, new NumberAxis("Temperature"),  renderer2);
+
+        // create a parent plot...
+        final CombinedDomainXYPlot combinedPlot = new CombinedDomainXYPlot(new DateAxis("Time"));
+
+        // add the subplots...
+        combinedPlot.add(subplot1, 1);
+        combinedPlot.add(subplot2, 1);
+        plot.setOrientation(PlotOrientation.VERTICAL);
+
+        // return a new chart containing the overlaid plot...
+
+        JFreeChart chart = new JFreeChart(
+                "Combined  XY Plot", JFreeChart.DEFAULT_TITLE_FONT, combinedPlot, true
+        );
+
+        JScrollPane chartpan3 = new JScrollPane();
+        chartpan3.setLayout(new BorderLayout());
+        ChartPanel CP4 = new ChartPanel(chart);
+        chartpan3.add(CP4,BorderLayout.CENTER);
+*/
 
         chartTypeChooser.addActionListener(e -> {
             switch(chartTypeChooser.getSelectedIndex()) {
@@ -223,6 +278,7 @@ public class mainWindow extends JPanel {
        c.gridx = 0;
        c.gridy = 0;
        c.gridwidth = 1;
+       c.gridheight = 1;
        this.add(topLeft, c);
 
        c.fill = java.awt.GridBagConstraints.BOTH;
@@ -231,6 +287,7 @@ public class mainWindow extends JPanel {
        c.gridx = 2;
        c.gridy = 0;
        c.gridwidth = 2;
+       c.gridheight = 1;
 
        this.add(topRight, c);
 
