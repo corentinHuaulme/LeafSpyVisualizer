@@ -16,6 +16,7 @@ import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.Dataset;
 import org.jfree.data.time.Month;
+import org.jfree.data.time.Second;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.xy.IntervalXYDataset;
@@ -28,7 +29,7 @@ import java.awt.*;
 import java.util.ArrayList;
 
 
-public class PanelChart{
+public abstract class PanelChart{
 
     private ArrayList<ArrayList<CarData>> data;
 
@@ -55,6 +56,8 @@ public class PanelChart{
     public Dataset getDatasetMotorPower(){
         return null;
     }
+    public Dataset getDatasetSOH(){ return null; }
+    public Dataset getDatasetQuickCharge(){ return null; }
     public JFreeChart getPanelChart(String title, String xLabel, String yLabel, Dataset dataset){
         return null;
     }

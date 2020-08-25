@@ -1,42 +1,37 @@
 package View;
 
 import Controller.CSVReader;
+import Controller.ChartChooserListener;
 import Controller.ChartMouseOverListener;
+import Controller.PlotChangedListenerCustom;
 import Model.CarData;
 import org.jfree.chart.*;
 import org.jfree.chart.axis.*;
-import org.jfree.chart.entity.CategoryItemEntity;
 import org.jfree.chart.plot.*;
-import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
-import org.jfree.chart.renderer.xy.XYBarRenderer;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-import org.jfree.chart.title.LegendTitle;
-import org.jfree.chart.ui.RectangleEdge;
-import org.jfree.chart.ui.RectangleInsets;
-import org.jfree.data.Range;
 import org.jfree.data.general.Dataset;
-import org.jfree.data.time.Day;
-import org.jfree.data.time.Minute;
-import org.jfree.data.time.TimeSeriesCollection;
-import org.jfree.data.xy.*;
-
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
-
+/**
+ * A mainWindow is a {@link JPanel} containing all the components of the window displayed to the user.
+ * A mainWindow is composed of 4 {@link JPanel} (one for each corner of the window). The place of each {@link JPanel} can be easily changed as the layout used is {@link GridBagLayout}.
+ */
 public class mainWindow extends JPanel {
 
+    /** The {@link PanelChart} use to gather the datasets and the {@link JFreeChart} generated with the datasets. **/
     private PanelChart panelChart;
+    /** The Data read from the selected files. **/
     private ArrayList<ArrayList<CarData>> cd;
 
+    /**
+     * Creates a mainWindow displaying the window to load the files and the mainWindow with all the components with the data from the files.
+     */
     public mainWindow(){
 
         refreshWindow();
@@ -45,15 +40,34 @@ public class mainWindow extends JPanel {
 
     }
 
+    /**
+     * Refreshes the components with the data read by the files selected by the user.
+     * Pop a {@link JFileChooser} window to let the user select files.
+     */
     public void refreshWindow(){
         this.removeAll();
-        loadComponents(this.fileChooser());
+        loadComponents(this.fileChooser(new ArrayList<ArrayList<CarData>>()));
+        this.validate();
+        this.repaint();
     }
 
-    public void loadComponents(File[] files){
+    /**
+     * Refreshes the components with the data read by the files selected by the user while keeping the previously read data. Used to add a file to the selection of files.
+     * Pop a {@link JFileChooser} window to let the user select files.
+     * @param cd The already loaded data.
+     */
+    public void refreshWindow(ArrayList<ArrayList<CarData>> cd){
+        this.removeAll();
+        loadComponents(this.fileChooser(cd));
+        this.validate();
+        this.repaint();
+    }
 
-       cd = new ArrayList<ArrayList<CarData>>();
-       cd = new CSVReader().readFiles(files);
+    /**
+     * Loads all the components contained in the mainWindow. Loads all the charts, the map and the listeners linked to any components.
+     * @param cd The data to be used by the components.
+     */
+    public void loadComponents(ArrayList<ArrayList<CarData>> cd){
 
        mapPanel map = new mapPanel(cd);
 
@@ -61,11 +75,11 @@ public class mainWindow extends JPanel {
        panelChart = new PanelChartLine(cd);
        panelChart.getDatasetSpeed();
        Dataset charge = panelChart.getDatasetCharge();
-       Dataset temp = panelChart.getDatasetTemperature();
+       Dataset temp = panelChart.getDatasetSpeed();
        this.setSize(800,800);
        this.setLayout(new GridBagLayout());
        GridBagConstraints c = new GridBagConstraints();
-       JFreeChart firstChart = panelChart.getPanelChart("Charge of the Battery","Time","Percentage of charge",charge);
+       JFreeChart firstChart = panelChart.getPanelChart("","Time","Percentage of the Battery",charge);
 
        JPanel chartpan1 = new JPanel();
        chartpan1.setLayout(new BorderLayout());
@@ -76,9 +90,16 @@ public class mainWindow extends JPanel {
        chartpan1.validate();
 
 
-       JFreeChart secondChart = panelChart.getPanelChart("Temperature of the Battery","Time","Temperature (°C)",temp);
+       JFreeChart secondChart = panelChart.getPanelChart("","Time","Speed of the Car",temp);
        XYPlot plot = secondChart.getXYPlot();
        DateAxis axis = (DateAxis) plot.getDomainAxis();
+       Date d = cd.get(0).get(0).getDate();
+       Calendar calDate = Calendar.getInstance();
+       calDate.setTime(d);
+
+       Calendar calendar2 = Calendar.getInstance();
+       boolean notFinished = true;
+       ArrayList datesToHide = new ArrayList();
        String dateFormat = "dd/MM HH:mm";
        axis.setDateFormatOverride(new SimpleDateFormat(dateFormat));
 
@@ -100,179 +121,121 @@ public class mainWindow extends JPanel {
        CP2.addChartMouseListener(new ChartMouseOverListener(CP2,CP,map));
 
 
+        PlotChangedListenerCustom listenerCustomFirst = new PlotChangedListenerCustom(firstChart,secondChart);
+        PlotChangedListenerCustom listenerCustomSecond = new PlotChangedListenerCustom(secondChart,firstChart);
+
+        firstChart.getXYPlot().addChangeListener(listenerCustomFirst);
+        secondChart.getXYPlot().addChangeListener(listenerCustomSecond);
 
 
        JPanel topLeft = new JPanel();
-       JComboBox chartChooser = new JComboBox();
+       JPanel topleftCategories = new JPanel();
+        JCheckBox socChk = new JCheckBox("SOC");
+        JCheckBox speedChk = new JCheckBox("Speed");
+        JCheckBox tempChk = new JCheckBox("Battery Temperature");
+        JCheckBox batCapChk = new JCheckBox("Battery Capacity");
+        JCheckBox motPwrChk = new JCheckBox("Motor Power");
+        JCheckBox sohChk = new JCheckBox("SOH");
+        JCheckBox qcChk = new JCheckBox("Quick Charge");
 
-       chartChooser.addItem("SOC");
-       chartChooser.addItem("Speed");
-       chartChooser.addItem("Battery Temperature");
-       chartChooser.addItem("Battery Capacity");
-       chartChooser.addItem("Motor Power");
+        topleftCategories.add(socChk);
+        topleftCategories.add(speedChk);
+        topleftCategories.add(tempChk);
+        topleftCategories.add(batCapChk);
+        topleftCategories.add(motPwrChk);
+        topleftCategories.add(sohChk);
+        topleftCategories.add(qcChk);
 
-       JComboBox chartTypeChooser = new JComboBox();
+        socChk.setSelected(true);
 
-       chartTypeChooser.addItem("Line");
-       chartTypeChooser.addItem("Bar");
+        socChk.addActionListener(new ChartChooserListener(socChk,CP,panelChart,CP2,listenerCustomFirst,listenerCustomSecond));
+        speedChk.addActionListener(new ChartChooserListener(speedChk,CP,panelChart,CP2,listenerCustomFirst,listenerCustomSecond));
+        tempChk.addActionListener(new ChartChooserListener(tempChk,CP,panelChart,CP2,listenerCustomFirst,listenerCustomSecond));
+        batCapChk.addActionListener(new ChartChooserListener(batCapChk,CP,panelChart,CP2,listenerCustomFirst,listenerCustomSecond));
+        motPwrChk.addActionListener(new ChartChooserListener(motPwrChk,CP,panelChart,CP2,listenerCustomFirst,listenerCustomSecond));
+        sohChk.addActionListener(new ChartChooserListener(sohChk,CP,panelChart,CP2,listenerCustomFirst,listenerCustomSecond));
+        qcChk.addActionListener(new ChartChooserListener(qcChk,CP,panelChart,CP2,listenerCustomFirst,listenerCustomSecond));
+
 
 
        topLeft.setLayout(new BorderLayout());
 
-       JPanel topLeftChooser = new JPanel();
-       topLeftChooser.setLayout(new GridLayout(0,2));
-       topLeftChooser.add(chartChooser);
-       topLeftChooser.add(chartTypeChooser);
-
        topLeft.add(chartpan1,BorderLayout.CENTER);
-       topLeft.add(topLeftChooser,BorderLayout.NORTH);
+       topLeft.add(topleftCategories,BorderLayout.NORTH);
 
-        chartChooser.addActionListener(e -> {
-            switch (chartChooser.getSelectedIndex()) {
-                case 0:
-                    CP.setChart(panelChart.getPanelChart("Charge of the Battery", "Time", "Percentage of the Charge", panelChart.getDatasetCharge()));
-                    break;
-                case 1:
-                    CP.setChart(panelChart.getPanelChart("Speed of the Car", "Time", "Speed of the Car (km/h)", panelChart.getDatasetSpeed()));
-                    break;
-                case 2:
-                    CP.setChart(panelChart.getPanelChart("Temperature of the Battery", "Time", "Temperature of the Battery", panelChart.getDatasetTemperature()));
-                    break;
-                case 3:
-                    CP.setChart(panelChart.getPanelChart("Capacity of the Battery", "Time", "Capacity of the Battery", panelChart.getDatasetCapacity()));
-                    break;
-                case 4:
-                    CP.setChart(panelChart.getPanelChart("Motor Power", "Time", "Power comsumed by the Motor (W)", panelChart.getDatasetMotorPower()));
-                    break;
-            }
-            XYPlot p = CP.getChart().getXYPlot();
-            DateAxis da = (DateAxis) p.getDomainAxis();
-            String dateF= "dd/MM HH:mm";
-            da.setDateFormatOverride(new SimpleDateFormat(dateF));
-        });
+        //chartChooser.addActionListener(new ChartChooserListener(chartChooser,CP,panelChart));
 
 
 
        JPanel bottomLeft = new JPanel();
-       JComboBox chartChooserBottom = new JComboBox();
+       JPanel listChk = new JPanel();
+       JCheckBox socChk2 = new JCheckBox("SOC");
+       JCheckBox speedChk2 = new JCheckBox("Speed");
+       JCheckBox tempChk2 = new JCheckBox("Battery Temperature");
+       JCheckBox batCapChk2 = new JCheckBox("Battery Capacity");
+       JCheckBox motPwrChk2 = new JCheckBox("Motor Power");
+       JCheckBox sohChk2 = new JCheckBox("SOH");
+       JCheckBox qcChk2 = new JCheckBox("Quick Charge");
 
-       chartChooserBottom.addItem("SOC");
-       chartChooserBottom.addItem("Speed");
-       chartChooserBottom.addItem("Battery Temperature");
-       chartChooserBottom.addItem("Battery Capacity");
-       chartChooserBottom.addItem("Motor Power");
+       speedChk2.setSelected(true);
+
+       listChk.add(socChk2);
+       listChk.add(speedChk2);
+       listChk.add(tempChk2);
+       listChk.add(batCapChk2);
+       listChk.add(motPwrChk2);
+       listChk.add(sohChk2);
+       listChk.add(qcChk2);
+
+       socChk2.addActionListener(new ChartChooserListener(socChk2,CP2,panelChart,CP,listenerCustomFirst,listenerCustomSecond));
+       speedChk2.addActionListener(new ChartChooserListener(speedChk2,CP2,panelChart,CP,listenerCustomFirst,listenerCustomSecond));
+       tempChk2.addActionListener(new ChartChooserListener(tempChk2,CP2,panelChart,CP,listenerCustomFirst,listenerCustomSecond));
+       batCapChk2.addActionListener(new ChartChooserListener(batCapChk2,CP2,panelChart,CP,listenerCustomFirst,listenerCustomSecond));
+       motPwrChk2.addActionListener(new ChartChooserListener(motPwrChk2,CP2,panelChart,CP,listenerCustomFirst,listenerCustomSecond));
+       sohChk2.addActionListener(new ChartChooserListener(sohChk2,CP2,panelChart,CP,listenerCustomFirst,listenerCustomSecond));
+       qcChk2.addActionListener(new ChartChooserListener(qcChk2,CP2,panelChart,CP,listenerCustomFirst,listenerCustomSecond));
 
        bottomLeft.setLayout(new BorderLayout());
 
        bottomLeft.add(chartpan2,BorderLayout.CENTER);
-       bottomLeft.add(chartChooserBottom, BorderLayout.NORTH);
+       bottomLeft.add(listChk, BorderLayout.NORTH);
 
-       chartChooserBottom.addActionListener(e -> {
-           System.out.println(e.getActionCommand()+ " - "+chartChooserBottom.getItemAt(chartChooserBottom.getSelectedIndex()));
-           switch(chartChooserBottom.getSelectedIndex()){
-               case 0 :
-                   CP2.setChart(panelChart.getPanelChart("Charge of the Battery","Time","Percentage of the Charge",panelChart.getDatasetCharge()));
-                   break;
-               case 1 :
-                   CP2.setChart(panelChart.getPanelChart("Speed of the Car","Time","Speed of the Car (km/h)",panelChart.getDatasetSpeed()));
-                   break;
-               case 2 :
-                   CP2.setChart(panelChart.getPanelChart("Temperature of the Battery","Time","Temperature of the Battery (°C)",panelChart.getDatasetTemperature()));
-                   break;
-               case 3 :
-                   CP2.setChart(panelChart.getPanelChart("Capacity of the Battery","Time","Capacity of the Battery",panelChart.getDatasetCapacity()));
-                   break;
-               case 4 :
-                   CP2.setChart(panelChart.getPanelChart("Motor Power","Time","Drive motor power (W)",panelChart.getDatasetMotorPower()));
-                   break;
-           }
-           XYPlot p = CP2.getChart().getXYPlot();
-           DateAxis da = (DateAxis) p.getDomainAxis();
-           String dateF= "dd/MM HH:mm";
-           da.setDateFormatOverride(new SimpleDateFormat(dateF));
-       });
-// create plot ...
-        // create subplot 1...
-      /*  final TimeSeriesCollection data1 = panelChart.getDatasetCharge();
-        final XYItemRenderer renderer1 = new StandardXYItemRenderer();
-        final XYPlot subplot1 = new XYPlot(data1, null, new NumberAxis("Charge"),  renderer1);
-
-        // create subplot 2...
-        final DefaultXYDataset  data2 = (DefaultXYDataset) panelChart.getDatasetTemperature();
-        final XYItemRenderer renderer2 = new StandardXYItemRenderer();
-        final XYPlot subplot2 = new XYPlot(data2, null, new NumberAxis("Temperature"),  renderer2);
-
-        // create a parent plot...
-        final CombinedDomainXYPlot combinedPlot = new CombinedDomainXYPlot(new DateAxis("Time"));
-
-        // add the subplots...
-        combinedPlot.add(subplot1, 1);
-        combinedPlot.add(subplot2, 1);
-        plot.setOrientation(PlotOrientation.VERTICAL);
-
-        // return a new chart containing the overlaid plot...
-
-        JFreeChart chart = new JFreeChart(
-                "Combined  XY Plot", JFreeChart.DEFAULT_TITLE_FONT, combinedPlot, true
-        );
-
-        JScrollPane chartpan3 = new JScrollPane();
-        chartpan3.setLayout(new BorderLayout());
-        ChartPanel CP4 = new ChartPanel(chart);
-        chartpan3.add(CP4,BorderLayout.CENTER);
-*/
-
-        chartTypeChooser.addActionListener(e -> {
-            switch(chartTypeChooser.getSelectedIndex()) {
-                case 0:
-                    panelChart = new PanelChartLine(cd);
-                    CP.setChart(panelChart.getPanelChart(String.valueOf(CP.getChart().getTitle()),
-                            CP.getChart().getCategoryPlot().getDomainAxis().getLabel(),
-                            CP.getChart().getCategoryPlot().getRangeAxis().getLabel(),
-                            panelChart.getDatasetCharge()));
-                    CP2.setChart(panelChart.getPanelChart(String.valueOf(CP2.getChart().getTitle()),
-                            CP2.getChart().getCategoryPlot().getDomainAxis().getLabel(),
-                            CP2.getChart().getCategoryPlot().getRangeAxis().getLabel(),
-                            panelChart.getDatasetCharge()));
-                    chartChooser.setSelectedIndex(chartChooser.getSelectedIndex());
-                    chartChooserBottom.setSelectedIndex(chartChooserBottom.getSelectedIndex());
-                    break;
-                case 1:
-                    panelChart = new PanelChartBar(cd);
-                    CP.setChart(panelChart.getPanelChart(String.valueOf(CP.getChart().getTitle()),
-                            CP.getChart().getXYPlot().getDomainAxis().getLabel(),
-                            CP.getChart().getXYPlot().getRangeAxis().getLabel(),
-                            panelChart.getDatasetCharge()));
-                    CP2.setChart(panelChart.getPanelChart(String.valueOf(CP2.getChart().getTitle()),
-                            CP2.getChart().getXYPlot().getDomainAxis().getLabel(),
-                            CP2.getChart().getXYPlot().getRangeAxis().getLabel(),
-                            panelChart.getDatasetCharge()));
-                    chartChooser.setSelectedIndex(chartChooser.getSelectedIndex());
-                    chartChooserBottom.setSelectedIndex(chartChooserBottom.getSelectedIndex());
-                    break;
-            }
-        });
 
 
 
        JPanel topRight = new JPanel();
+       JPanel buttonsTopRight = new JPanel();
        JButton load = new JButton("Load files");
+       JButton addFiles = new JButton("Add files");
        topRight.setLayout(new BorderLayout());
+       buttonsTopRight.setLayout(new GridBagLayout());
 
-       topRight.add(load,BorderLayout.NORTH);
+       GridBagConstraints constraints = new GridBagConstraints();
+       constraints.gridheight = 1;
+       constraints.gridwidth = 1;
+       constraints.gridy = 0;
+       constraints.gridx = 0;
+
+       buttonsTopRight.add(load,constraints);
+
+       constraints.gridx = 1;
+       buttonsTopRight.add(addFiles,constraints);
+
+       topRight.add(buttonsTopRight,BorderLayout.NORTH);
        topRight.add(map.getMap(),BorderLayout.CENTER);
 
        load.addActionListener(e -> refreshWindow());
+       addFiles.addActionListener(e -> refreshWindow(cd));
 
        PanelChartPie pcp = new PanelChartPie(cd);
-        JFreeChart pieChart = pcp.getPanelChart("Battery usage","Time","Speed (km/h)",pcp.getDatasetSpeed());
-        JPanel chartpie = new JPanel();
-        chartpie.setLayout(new BorderLayout());
-        ChartPanel CP3 = new ChartPanel(pieChart);
-        //CP3.setHorizontalAxisTrace(true);
-        CP3.setPreferredSize(new Dimension(800,470));
-        chartpie.add(CP3, BorderLayout.CENTER);
-        chartpie.validate();
+       JFreeChart pieChart = pcp.getPanelChart("Battery usage","Time","Speed (km/h)",pcp.getDatasetSpeed());
+       JPanel chartpie = new JPanel();
+       chartpie.setLayout(new BorderLayout());
+       ChartPanel CP3 = new ChartPanel(pieChart);
+       //CP3.setHorizontalAxisTrace(true);
+       CP3.setPreferredSize(new Dimension(800,470));
+       chartpie.add(CP3, BorderLayout.CENTER);
+       chartpie.validate();
 
 
        c.gridx = 0;
@@ -305,7 +268,12 @@ public class mainWindow extends JPanel {
 
     }
 
-    public File[] fileChooser(){
+    /**
+     * Pop a {@link JFileChooser} to let the user select files.
+     * @param cd The already loaded data. An empty {@link ArrayList} is provided if no other data is to be kept.
+     * @return The data read append to the already loaded data.
+     */
+    public ArrayList<ArrayList<CarData>> fileChooser(ArrayList<ArrayList<CarData>> cd){
        JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
        jfc.setMultiSelectionEnabled(true);
        File[] selectedFile = null;
@@ -315,7 +283,32 @@ public class mainWindow extends JPanel {
        if (returnValue == JFileChooser.APPROVE_OPTION) {
            selectedFile = jfc.getSelectedFiles();
        }
-       return selectedFile;
+
+        ArrayList<ArrayList<CarData>> cd2 = new ArrayList<ArrayList<CarData>>();
+        cd2 = new CSVReader().readFiles(selectedFile);
+
+        System.out.println("C KWA LA TAIELLE : "+cd2.size());
+
+        boolean isIn = false;
+
+        for(ArrayList<CarData> carData : cd2) {
+            isIn = false;
+            for(ArrayList<CarData> carData2 : cd) {
+                if (carData.get(0).getDate().getDate() == carData2.get(0).getDate().getDate() &&
+                        carData.get(0).getDate().getMonth() == carData2.get(0).getDate().getMonth() &&
+                        carData.get(0).getDate().getYear() == carData2.get(0).getDate().getYear()) {
+                    isIn = true;
+                    System.out.println(selectedFile[cd2.indexOf(carData)].getName() + " already loaded - " + carData.get(0).getDate().toString() + " - " + carData2.get(0).getDate().toString());
+                    break;
+                }
+            }
+            if(!isIn){
+                cd.add(carData);
+            }
+        }
+
+
+       return cd;
     }
     public static void main(String[] args) {
         JFrame frame = new JFrame("LeafSpy visualizer");
@@ -327,7 +320,7 @@ public class mainWindow extends JPanel {
         frame.getContentPane().add(new mainWindow());
 
         //Display the window.
-       // frame.pack();
+        //frame.pack();
         frame.setVisible(true);
 
     }

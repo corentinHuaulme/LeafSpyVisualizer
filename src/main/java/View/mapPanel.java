@@ -20,12 +20,23 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
+/**
+ * A {@link JPanel} containing a map of the world.
+ * The map of the world is provided by OpenStreetMap. Tracks are added to map to display the trip made by the user.
+ */
 public class mapPanel extends JPanel {
 
+    /** The object containing the map of the world. **/
     private JXMapViewer map;
+    /** The data being used to add tracks on the map **/
     private ArrayList<ArrayList<CarData>> data;
+    /** A {@link List} of the added painters({@link Waypoint}, tracks) on the map **/
     private List<Painter<JXMapViewer>> painters = new ArrayList<Painter<JXMapViewer>>();
 
+    /**
+     * Build a mapPanel containing the map of the world and the tracks representing the trips made by the user
+     * @param cd The data containing the geo positions of the trips.
+     */
     public mapPanel(ArrayList<ArrayList<CarData>> cd){
 
         this.map = new JXMapViewer();
@@ -48,7 +59,7 @@ public class mapPanel extends JPanel {
             for (CarData c : data) {
                 track.add(new GeoPosition(c.getLatitude(), c.getLongitude()));
             }
-            this.painters.add(new RoutePainter(track, (Color) cs[num]));
+            this.painters.add(new RoutePainter(track, (Color) cs[num%cs.length]));
             num++;
         }
 
@@ -109,10 +120,19 @@ public class mapPanel extends JPanel {
 
     }
 
+    /**
+     * Return the object containing the map
+     * @return A {@link JXMapViewer} object, contains the map of the worlds and the track of the trips
+     */
     public JXMapViewer getMap(){
         return this.map;
     }
 
+    /**
+     * Add {@link Waypoint} on the map at a precise point from the data.
+     * Called on mouse hovering on the charts
+     * @param x The index of the data being hovered by the user
+     */
     public void addWaypoint(int x){
         ArrayList<CarData> carData = new ArrayList<>();
         for(ArrayList<CarData> cd : this.data){

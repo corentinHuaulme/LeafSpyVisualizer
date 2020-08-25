@@ -2,6 +2,7 @@ package Model;
 
 import org.jfree.data.time.RegularTimePeriod;
 
+import java.util.Arrays;
 import java.util.Date;
 
 public class CarData {
@@ -16,8 +17,10 @@ public class CarData {
     private float speed;
     private long auxPower;
     private long acPower;
+    private float SOH;
+    private int quickCharge;
 
-    public CarData(Date date, double latitude, double longitude, double charge, double[] temperature, int AHr, long motorPower,float speed, long auxPower, long acPower) {
+    public CarData(Date date, double latitude, double longitude, double charge, double[] temperature, int AHr, long motorPower,float speed, long auxPower, long acPower, float SOH, int quickCharge) {
         this.date = date;
         this.charge = charge;
         this.temperature = temperature;
@@ -28,6 +31,8 @@ public class CarData {
         this.speed = speed;
         this.acPower = acPower;
         this.auxPower = auxPower;
+        this.SOH = SOH;
+        this.quickCharge = quickCharge;
     }
 
     public double getCharge(){
@@ -51,4 +56,24 @@ public class CarData {
     public long getAcPower() { return acPower; }
 
     public long getAuxPower() { return auxPower; }
+
+    public float getSOH() { return SOH; }
+
+    public int getQuickCharge() { return quickCharge; }
+
+    @Override
+    public String toString() {
+        return "CarData{" +
+                "date=" + date +
+                ", latitude=" + latitude +
+                ", longitude=" + longitude +
+                ", charge=" + charge +
+                ", temperature=" + Arrays.toString(temperature) +
+                ", AHr=" + AHr +
+                ", motorPower=" + motorPower +
+                ", speed=" + speed +
+                ", auxPower=" + auxPower +
+                ", acPower=" + acPower +
+                '}';
+    }
 }
