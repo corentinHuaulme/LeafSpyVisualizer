@@ -166,9 +166,9 @@ public class PanelChartLine extends PanelChart{
         int lastValue = 0;
         for(ArrayList<CarData> cd : this.getData()){
             for (CarData data : cd) {
-                if(data.getQuickCharge() != lastValue){
+                //if(data.getQuickCharge() != lastValue){
                     series1.add(new Second(data.getDate()), data.getQuickCharge());
-                }
+                //}
             }
         }
         dataset.addSeries(series1);
@@ -201,7 +201,9 @@ public class PanelChartLine extends PanelChart{
         //renderer.setDefaultPaint(Color.CYAN);
         Paint[] cs = ChartColor.createDefaultPaintArray();
         chart.getXYPlot().setDataset(0, (XYDataset) dataset);
-        renderer.setSeriesPaint(0,cs[0]);
+        for( int i = 0 ; i < ((XYDataset) dataset).getSeriesCount() ; i++){
+            renderer.setSeriesPaint(i,cs[0]);
+        }
         renderer.setDefaultShapesVisible(false);
 
 

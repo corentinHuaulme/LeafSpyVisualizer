@@ -5,6 +5,9 @@ import Controller.ChartChooserListener;
 import Controller.ChartMouseOverListener;
 import Controller.PlotChangedListenerCustom;
 import Model.CarData;
+import org.jdatepicker.impl.JDatePanelImpl;
+import org.jdatepicker.impl.JDatePickerImpl;
+import org.jdatepicker.impl.UtilDateModel;
 import org.jfree.chart.*;
 import org.jfree.chart.axis.*;
 import org.jfree.chart.plot.*;
@@ -14,9 +17,11 @@ import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.io.*;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Properties;
 
 /**
  * A mainWindow is a {@link JPanel} containing all the components of the window displayed to the user.
@@ -201,6 +206,15 @@ public class mainWindow extends JPanel {
        bottomLeft.add(listChk, BorderLayout.NORTH);
 
 
+        UtilDateModel model = new UtilDateModel();
+        model.setDate(20,04,2014);
+        // Need this...
+        Properties p = new Properties();
+        p.put("text.today", "Today");
+        p.put("text.month", "Month");
+        p.put("text.year", "Year");
+        JDatePanelImpl datePanel = new JDatePanelImpl(model, p);
+
 
 
        JPanel topRight = new JPanel();
@@ -221,6 +235,8 @@ public class mainWindow extends JPanel {
        constraints.gridx = 1;
        buttonsTopRight.add(addFiles,constraints);
 
+       constraints.gridx = 2;
+      // buttonsTopRight.add(datePanel,constraints);
        topRight.add(buttonsTopRight,BorderLayout.NORTH);
        topRight.add(map.getMap(),BorderLayout.CENTER);
 

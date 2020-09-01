@@ -110,7 +110,7 @@ public class ChartChooserListener implements ActionListener {
 
 
                 final NumberAxis axis2 = new NumberAxis(plot.getRangeAxis(i).getLabel());
-                //axis2.setAutoRangeIncludesZero(false);
+                axis2.setAutoRangeIncludesZero(false);
                 LegendItem legend = new LegendItem(axis2.getLabel());
 
                 XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
@@ -163,6 +163,7 @@ public class ChartChooserListener implements ActionListener {
         axis2.setAutoRangeIncludesZero(false);
 
         LegendItemCollection legends = new LegendItemCollection();
+
 
         if(!chooser.isSelected() && plot.getDatasetCount() > 1){
             for(int i = 0 ; i < plot.getRangeAxisCount() ; i++){
