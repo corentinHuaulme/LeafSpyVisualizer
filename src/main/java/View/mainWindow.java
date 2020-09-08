@@ -5,6 +5,8 @@ import Controller.ChartChooserListener;
 import Controller.ChartMouseOverListener;
 import Controller.PlotChangedListenerCustom;
 import Model.CarData;
+import Model.DateLabelFormatter;
+import org.jdatepicker.JDatePanel;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
@@ -14,8 +16,12 @@ import org.jfree.chart.plot.*;
 import org.jfree.data.general.Dataset;
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
+import javax.swing.text.DateFormatter;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.*;
+import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -52,7 +58,7 @@ public class mainWindow extends JPanel {
     public void refreshWindow(){
         this.removeAll();
         loadComponents(this.fileChooser(new ArrayList<ArrayList<CarData>>()));
-        this.validate();
+        this.revalidate();
         this.repaint();
     }
 
@@ -74,6 +80,7 @@ public class mainWindow extends JPanel {
      */
     public void loadComponents(ArrayList<ArrayList<CarData>> cd){
 
+        this.cd = cd;
        mapPanel map = new mapPanel(cd);
 
 
@@ -88,9 +95,9 @@ public class mainWindow extends JPanel {
 
        JPanel chartpan1 = new JPanel();
        chartpan1.setLayout(new BorderLayout());
-       ChartPanel CP = new ChartPanel(firstChart);
+        ChartPanel CP = new ChartPanel(firstChart);
        //CP.setHorizontalAxisTrace(true);
-       CP.setPreferredSize(new Dimension(800,470));
+       CP.setPreferredSize(new Dimension(700,450));
        chartpan1.add(CP, BorderLayout.CENTER);
        chartpan1.validate();
 
@@ -102,7 +109,6 @@ public class mainWindow extends JPanel {
        Calendar calDate = Calendar.getInstance();
        calDate.setTime(d);
 
-       Calendar calendar2 = Calendar.getInstance();
        boolean notFinished = true;
        ArrayList datesToHide = new ArrayList();
        String dateFormat = "dd/MM HH:mm";
@@ -114,10 +120,10 @@ public class mainWindow extends JPanel {
 
        JPanel chartpan2 = new JPanel();
        chartpan2.setLayout(new BorderLayout());
-       ChartPanel CP2 = new ChartPanel(secondChart);
+        ChartPanel CP2 = new ChartPanel(secondChart);
 
 
-       CP2.setPreferredSize(new Dimension(800,470));
+       CP2.setPreferredSize(new Dimension(700,450));
        chartpan2.add(CP2, BorderLayout.CENTER);
        chartpan2.validate();
 
@@ -207,17 +213,64 @@ public class mainWindow extends JPanel {
 
 
         UtilDateModel model = new UtilDateModel();
-        model.setDate(20,04,2014);
+        model.setSelected(true);
+        model.setDate(calDate.get(Calendar.YEAR),calDate.get(Calendar.MONTH),calDate.get(Calendar.DATE));
         // Need this...
         Properties p = new Properties();
         p.put("text.today", "Today");
         p.put("text.month", "Month");
         p.put("text.year", "Year");
         JDatePanelImpl datePanel = new JDatePanelImpl(model, p);
+        JDatePickerImpl datePicker = new JDatePickerImpl(datePanel, new DateLabelFormatter());
 
 
 
-       JPanel topRight = new JPanel();
+        UtilDateModel model2 = new UtilDateModel();
+        model2.setSelected(true);
+        d = cd.get(cd.size()-1).get(cd.get(cd.size()-1).size()-1).getDate();
+        Calendar calendar1 = Calendar.getInstance();
+        calendar1.setTime(d);
+
+        model2.setDate(calendar1.get(Calendar.YEAR),calendar1.get(Calendar.MONTH),calendar1.get(Calendar.DATE));
+        // Need this...
+        JDatePanelImpl datePanel2 = new JDatePanelImpl(model2, p);
+        JDatePickerImpl datePicker2 = new JDatePickerImpl(datePanel2, new DateLabelFormatter());
+
+        datePicker.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+               if(datePanel2.getModel().getValue() != null && datePanel.getModel().getValue() != null){
+
+                   if(((Date) datePanel.getModel().getValue()).getTime() >= calDate.getTime().getTime() &&
+                           ((Date) datePanel2.getModel().getValue()).getTime() >= ((Date) datePanel.getModel().getValue()).getTime()) {
+                       restrictDataset((Date) datePanel.getModel().getValue(), (Date) datePanel2.getModel().getValue());
+                       calDate.setTime((Date) datePanel.getModel().getValue());
+                   }else{
+                       JOptionPane.showMessageDialog(null, "The date is outside the range of the loaded files", "ERROR !", JOptionPane.INFORMATION_MESSAGE);
+                       datePanel.getModel().setDate(calDate.get(Calendar.YEAR),calDate.get(Calendar.MONTH),calDate.get(Calendar.DATE));
+                   }
+               }
+            }
+        });
+        datePicker2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(datePanel2.getModel().getValue() != null && datePanel.getModel().getValue() != null){
+                    if(((Date) datePanel2.getModel().getValue()).getTime() <= calendar1.getTime().getTime() &&
+                            ((Date) datePanel2.getModel().getValue()).getTime() >= ((Date) datePanel.getModel().getValue()).getTime()) {
+                        restrictDataset((Date) datePanel.getModel().getValue(), (Date) datePanel2.getModel().getValue());
+                        calendar1.setTime((Date) datePanel2.getModel().getValue());
+                    }else{
+                        JOptionPane.showMessageDialog(null, "The date is outside the range of the loaded files", "ERROR !", JOptionPane.INFORMATION_MESSAGE);
+                        datePanel2.getModel().setDate(calendar1.get(Calendar.YEAR),calendar1.get(Calendar.MONTH),calendar1.get(Calendar.DATE));
+                    }
+                }
+            }
+        });
+
+
+
+        JPanel topRight = new JPanel();
        JPanel buttonsTopRight = new JPanel();
        JButton load = new JButton("Load files");
        JButton addFiles = new JButton("Add files");
@@ -236,7 +289,9 @@ public class mainWindow extends JPanel {
        buttonsTopRight.add(addFiles,constraints);
 
        constraints.gridx = 2;
-      // buttonsTopRight.add(datePanel,constraints);
+       buttonsTopRight.add(datePicker,constraints);
+        constraints.gridx = 3;
+        buttonsTopRight.add(datePicker2,constraints);
        topRight.add(buttonsTopRight,BorderLayout.NORTH);
        topRight.add(map.getMap(),BorderLayout.CENTER);
 
@@ -247,7 +302,7 @@ public class mainWindow extends JPanel {
        JFreeChart pieChart = pcp.getPanelChart("Battery usage","Time","Speed (km/h)",pcp.getDatasetSpeed());
        JPanel chartpie = new JPanel();
        chartpie.setLayout(new BorderLayout());
-       ChartPanel CP3 = new ChartPanel(pieChart);
+        ChartPanel CP3 = new ChartPanel(pieChart);
        //CP3.setHorizontalAxisTrace(true);
        CP3.setPreferredSize(new Dimension(800,470));
        chartpie.add(CP3, BorderLayout.CENTER);
@@ -256,7 +311,7 @@ public class mainWindow extends JPanel {
 
        c.gridx = 0;
        c.gridy = 0;
-       c.gridwidth = 1;
+       c.gridwidth = 2;
        c.gridheight = 1;
        this.add(topLeft, c);
 
@@ -265,7 +320,7 @@ public class mainWindow extends JPanel {
        c.weighty = 1.0;
        c.gridx = 2;
        c.gridy = 0;
-       c.gridwidth = 2;
+       c.gridwidth = 1;
        c.gridheight = 1;
 
        this.add(topRight, c);
@@ -273,12 +328,12 @@ public class mainWindow extends JPanel {
        GridBagConstraints gc = new GridBagConstraints();
        gc.gridx = 0;
        gc.gridy = 1;
-       gc.gridwidth = 1;
+       gc.gridwidth = 2;
        this.add(bottomLeft, gc);
 
-       gc.gridx = 1;
+       gc.gridx = 2;
        gc.gridy = 1;
-       gc.gridwidth = 2;
+       gc.gridwidth = 1;
        this.add(chartpie,gc);
 
 
@@ -305,7 +360,7 @@ public class mainWindow extends JPanel {
 
         System.out.println("C KWA LA TAIELLE : "+cd2.size());
 
-        boolean isIn = false;
+        boolean isIn;
 
         for(ArrayList<CarData> carData : cd2) {
             isIn = false;
@@ -326,6 +381,28 @@ public class mainWindow extends JPanel {
 
        return cd;
     }
+
+    public void restrictDataset(Date start, Date end){
+        end.setDate(end.getDate()+1);
+        ArrayList<ArrayList<CarData>> cd2 = new ArrayList<ArrayList<CarData>>();
+
+        for(ArrayList<CarData> al : this.cd){
+            ArrayList<CarData> temp = new ArrayList<CarData>();
+            for(CarData data : al){
+                if(data.getDate().getTime() > start.getTime() && data.getDate().getTime() < end.getTime()){
+                    temp.add(data);
+                }
+            }
+            if(temp.size() > 0){
+                cd2.add(temp);
+            }
+        }
+        this.removeAll();
+        loadComponents(cd2);
+        this.revalidate();
+        this.repaint();
+    }
+
     public static void main(String[] args) {
         JFrame frame = new JFrame("LeafSpy visualizer");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
